@@ -1,0 +1,7 @@
+sympy
+pycrypto
+gmpy
+gmpy2
+requests
+termcolor
+owiener
