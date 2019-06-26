@@ -2,7 +2,6 @@
 import rsolver
 from rsolver import helper, parser
 
-
 solv = rsolver.Rsolver(vars(helper.args)["timeout"])
 parser.parse(vars(helper.args), solv)
 solv.crack()
