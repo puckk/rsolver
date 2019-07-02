@@ -60,12 +60,12 @@ class Rsolver:
 
 
     def printflag(self):
-        C=self.datas["c"][-1]
-        d=self.datas["d"][-1]
-        N=self.datas["n"][-1]
+        C = self.datas["c"][-1]
+        d = self.datas["d"][-1]
+        N = self.datas["n"][-1]
         p = pow(C, d, N)
         size = len("{:02x}".format(p)) // 2
-        output= ("".join([chr((p >> j) & 0xff) for j in reversed(range(0, size << 3, 8))]))
+        output = ("".join([chr((p >> j) & 0xff) for j in reversed(range(0, size << 3, 8))]))
         #print (output)
 
         filename=self.outputfolder+"/plaintext_cdn"
@@ -216,10 +216,10 @@ class Rsolver:
 
     def canCreatePub(self):
         if not self.pubCreated:
-            if (len(self.datas["n"])==1 and len(self.datas["e"]) == 1 and len(self.datas["pem"])==0):
-                filename=self.outputfolder+"/publicKey.pem"
-                out=open(filename,"w")
-                plaintext=RSA.construct((self.datas["n"][-1], self.datas["e"][-1])).publickey().exportKey().decode("utf8")
+            if (len(self.datas["n"])>0 and len(self.datas["e"])> 0 and len(self.datas["pem"])==0):
+                filename = self.outputfolder+"/publicKey.pem"
+                out = open(filename,"w")
+                plaintext = RSA.construct((self.datas["n"][-1], self.datas["e"][-1])).publickey().exportKey().decode("utf8")
                 out.write(plaintext)
                 out.close()
                 print(colored('Public Key created in {}'.format(filename), 'blue'))
@@ -294,9 +294,13 @@ class Rsolver:
     def iscracked(self):
         #print (self.datas)
         #if p y q -> add N
+        #print("a")
         self.halfn()
+        #print("b")
         self.canCreatePub()
+        #print("c")
         self.canCreatePriv()
+        #print("d")
         if self.privCreated and len(self.datas["chex"])>0:
             self.decrypt()
         elif (self.datas["c"] and self.datas["d"] and self.datas["n"]):
