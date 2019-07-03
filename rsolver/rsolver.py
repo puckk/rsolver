@@ -39,6 +39,7 @@ class Rsolver:
         self.decrypted = False
         self.pubCreated = False
         self.privCreated = False
+        self.plain_setted = False
         self.solvedC = False
         self.solvedF = False
         self.stopInFirstFound = True
@@ -287,7 +288,8 @@ class Rsolver:
     def iscracked(self):
         #print (self.datas)
         #if p y q -> add N
-        if (self.datas["plaintext"]):
+        if (self.datas["plaintext"]) and not self.plain_setted:
+            self.plain_setted = True
             filename=self.outputfolder+"/plaintext"
             out = open(filename, "wb")
             out.write(self.datas["plaintext"])
