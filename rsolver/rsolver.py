@@ -19,45 +19,51 @@ import traceback
 import logging
 
 logger = logging.getLogger('Rsolver')
+
+
 class TimeOutException(Exception):
     def __init__(self, message):
         super(TimeOutException, self).__init__(message)
 
 
 class Rsolver:
-    datas={"n":[], "e":[], "c":[], "phi":[], "dp":[],"dq":[],"qinv":[],"pem":[], "pemfile":[], "p":[],"q":[], "d":[], "chex":[], "cfile":[],"priv":[],"c64":[], "chinese_m":0, "multin_primes":None,"multin_count_of_primes":None, "blind": False, "ucp": None}
-    outputfolder=""
+    datas = {"n": [], "e": [], "c": [], "phi": [], "dp": [], "dq": [],
+             "qinv": [], "pem": [], "pemfile": [], "p": [], "q": [], "d": [],
+             "chex": [], "cfile": [], "priv": [], "c64": [], "chinese_m": 0,
+             "multin_primes": None, "multin_count_of_primes": None,
+             "blind": False, "ucp": None, "plaintext": None}
+
+    outputfolder = ""
 
     def __init__(self, timeout):
-        self.decrypted=False
-        self.pubCreated=False
-        self.privCreated=False
-        self.solvedC=False
-        self.solvedF=False
-        self.stopInFirstFound=True
+        self.decrypted = False
+        self.pubCreated = False
+        self.privCreated = False
+        self.solvedC = False
+        self.solvedF = False
+        self.stopInFirstFound = True
         if timeout:
-            self.timeout=int(timeout)
+            self.timeout = int(timeout)
         else:
-            self.timeout=120
-        tiempo="1"
-        creo=False
+            self.timeout = 120
+        tiempo = "1"
+        creo = False
         while not creo:
             try:
                 os.mkdir("output_"+str(tiempo).zfill(2))
-                tiempo="output_"+str(tiempo).zfill(2)
-                creo=True
-            except:
-                tiempo=int(tiempo)+1
-
-
-        self.outputfolder=str(tiempo)
+                tiempo = "output_"+str(tiempo).zfill(2)
+                creo = True
+            except Exception:
+                tiempo = int(tiempo)+1
+        self.outputfolder = str(tiempo)
         # LOGGER
         script_path = os.path.dirname(os.path.abspath(__file__))
         log_format = '%(asctime)s - %(name)s - %(levelname)s: %(message)s'
-        logging.basicConfig(filename=self.outputfolder+'/output.log', level=logging.DEBUG, format=log_format)
-        logger.info('Iniciando Rsolver en carpeta {}'.format(self.outputfolder))
-        print (colored("OUTPUT FOLDER: " +self.outputfolder,"red")) #Cambiar por colores
-
+        logging.basicConfig(filename=self.outputfolder+'/output.log',
+                            level=logging.DEBUG, format=log_format)
+        logger.info('Iniciando Rsolver en carpeta {}'
+                    .format(self.outputfolder))
+        print(colored("OUTPUT FOLDER: " + self.outputfolder, "red"))
 
     def printflag(self):
         C = self.datas["c"][-1]
@@ -65,34 +71,31 @@ class Rsolver:
         N = self.datas["n"][-1]
         p = pow(C, d, N)
         size = len("{:02x}".format(p)) // 2
-        output = ("".join([chr((p >> j) & 0xff) for j in reversed(range(0, size << 3, 8))]))
-        #print (output)
-
-        filename=self.outputfolder+"/plaintext_cdn"
-        out=open(filename,"wb")
-        plaintext=hex(pow(C,d,N))[2:]
+        output = ("".join([chr((p >> j) & 0xff) for j in reversed(
+                  range(0, size << 3, 8))]))
+        filename = self.outputfolder + "/plaintext_cdn"
+        out = open(filename, "wb")
+        plaintext = hex(pow(C, d, N))[2:]
         if plaintext == "0":
             return
-        # print ("!!!!!!!!!!!!!!!!!! ",plaintext, "...", type(plaintext))
-        if len(plaintext) % 2 ==1 :
-            plaintext="0"+plaintext
-        plaintext=binascii.unhexlify(plaintext)
+        if len(plaintext) % 2 == 1:
+            plaintext = "0"+plaintext
+        plaintext = binascii.unhexlify(plaintext)
         print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
         logger.info("FLAG FOUND from c,d and n:\n{}".format(plaintext))
         logger.info("FLAG save in {}".format(filename))
-        self.solvedC=True
+        self.solvedC = True
         out.write(plaintext)
         out.close()
         if self.stopInFirstFound:
             exit()
 
-
-    def inv(self,x, m):
+    def inv(self, x, m):
         return sympy.invert(x, m)
 
-    def crt_speedup_decrypt(self,cipher_text, private_key, primes, count_of_primes, n):
+    def crt_speedup_decrypt(self, cipher_text, private_key, primes,
+                            count_of_primes, n):
         plain_text = 0
-
         for p, count in zip(primes, count_of_primes):
             m = p ** count
             phi_m = (p ** (count - 1)) * (p - 1)
@@ -102,61 +105,66 @@ class Rsolver:
             M_inv = self.inv(M, m)
             plain_text = (plain_text + remainder * M * M_inv) % n
 
-        text= hex(plain_text)[2:]
-        if len(text)%2==1:
-            text="0"+text
-        filename=self.outputfolder+"/PLAINTEXTE"
+        text = hex(plain_text)[2:]
+        if len(text) % 2 == 1:
+            text = "0"+text
+        filename = self.outputfolder+"/PLAINTEXTE"
         print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
-        out=open(filename, "wb")
-        text=binascii.unhexlify(text)
+        out = open(filename, "wb")
+        text = binascii.unhexlify(text)
         logger.info("FLAG FOUND SAVE IN FILE:\n{}".format(filename))
         out.write(text)
-
-
-
 
     def pandq(self):
         if (not self.datas["n"]):
             self.addn(self.datas["p"][-1]*self.datas["q"][-1])
 
-        f=(self.datas["p"][-1]-1)*(self.datas["q"][-1]-1)
+        f = (self.datas["p"][-1]-1)*(self.datas["q"][-1]-1)
         if f not in self.datas["phi"]:
             self.addphi(f)
 
         if (self.datas["c"]):
-            aux=0
+            aux = 0
             for e in self.datas["e"]:
                 d = int(gmpy.invert(e, self.datas["phi"][-1]))
                 self.addd(int(d))
-                filename=self.outputfolder+"/PLAINTEXTB"+str(aux)
-                out=open(filename,"wb")
+                filename = self.outputfolder+"/PLAINTEXTB"+str(aux)
+                out = open(filename, "wb")
                 logger.info("FLAG FOUND save in :\n{}".format(filename))
-                print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'), colored("(Somethimes this decrypt file, if do, try with base64 crypt file)","blue"))
-                aux=aux+1
-                plaintext=hex((pow(self.datas["c"][-1], d, self.datas["n"][-1])))[2:]
-                if len(plaintext) % 2 ==1 :
-                   plaintext="0"+plaintext
-                plaintext=binascii.unhexlify(plaintext)
+                print(colored('===FLAG FOUND IN {}==='.format(filename),
+                      'green'), colored("(Somethimes this decrypt file, if do, \
+                      try with base64 crypt file)", "blue"))
+                aux = aux+1
+                plaintext = hex((pow(self.datas["c"][-1],
+                                d, self.datas["n"][-1])))[2:]
+                if len(plaintext) % 2 == 1:
+                    plaintext = "0" + plaintext
+                plaintext = binascii.unhexlify(plaintext)
                 out.write(plaintext)
                 out.close()
-        self.datas["privatekey"]=crearPrivateKey(self.datas["p"],self.datas["q"],self.datas["e"],self.outputfolder,logger)
+        self.datas["privatekey"] = crearPrivateKey(self.datas["p"],
+                                                   self.datas["q"],
+                                                   self.datas["e"],
+                                                   self.outputfolder,
+                                                   logger)
         if (self.datas["c64"]):
             try:
-                plaintext=self.decrypt_withc64(self.datas["c64"][-1])
-                filename=self.outputfolder+"/PLAINTEXTA"
-                out=open(filename,"wb")
+                plaintext = self.decrypt_withc64(self.datas["c64"][-1])
+                filename = self.outputfolder+"/PLAINTEXTA"
+                out = open(filename, "wb")
                 logger.info("FLAG FOUND save in :\n{}".format(filename))
-                print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
+                print(colored('===FLAG FOUND IN {}==='.format(filename),
+                      'green'))
                 out.write(plaintext)
                 out.close()
             except Exception as e:
-                print (e)
+                print(e)
 
 
     def flagchinese(self):
-        m=self.datas["chinese_m"]
-        filename=self.outputfolder+"/PLAINTEXTF"
-        out=open(filename,"w")
+        m = self.datas["chinese_m"]
+        filename = self.outputfolder+"/PLAINTEXTF"
+        out = open(filename, "w")
         plaintext=bytes.fromhex(hex(m)[2:]).decode()
         out.write(plaintext)
         out.close()
@@ -216,7 +224,7 @@ class Rsolver:
 
     def canCreatePub(self):
         if not self.pubCreated:
-            if (len(self.datas["n"])>0 and len(self.datas["e"])> 0 and len(self.datas["pem"])==0):
+            if (len(self.datas["n"])>0 and len(self.datas["e"])> 0):
                 filename = self.outputfolder+"/publicKey.pem"
                 out = open(filename,"w")
                 plaintext = RSA.construct((self.datas["n"][-1], self.datas["e"][-1])).publickey().exportKey().decode("utf8")
@@ -239,29 +247,14 @@ class Rsolver:
                 logger.info("PEM Private key create in {} !".format(filename))
 
     def decrypt(self):
-        # if (self.datas["c64"]):
-        #     try:
-        #         plaintext=self.decrypt_withc64(self.datas["c64"][-1])
-        #         filename=self.outputfolder+"/plaintext_64"
-        #         out=open(filename,"wb")
-        #         logger.info("FLAG FOUND save in :\n{}".format(filename))
-        #         print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
-        #         out.write(plaintext)
-        #         out.close()
-        #         self.decrypted=True
-        #         print (self.datas)
-        #     except Exception as e:
-        #         print (e)
-
         if not self.decrypted:
-            g=self.datas["priv"][-1].decrypt(self.datas["chex"][-1])
+            g = self.datas["priv"][-1].decrypt(self.datas["chex"][-1])
             filename=self.outputfolder+"/plaintext"
             out=open(filename,"wb")
             out.write(g)
             out.close()
             print(colored("FLAG FOUND IN {} !".format(filename),"green"))
             logger.info("FLAG FOUND IN {} !".format(filename))
-
             try:
                 g=self.datas["priv"][-1].decryptOAEP(self.datas["chex"][-1])
                 filename=self.outputfolder+"/plaintext_oaep"
@@ -294,15 +287,25 @@ class Rsolver:
     def iscracked(self):
         #print (self.datas)
         #if p y q -> add N
-        #print("a")
+        if (self.datas["plaintext"]):
+            filename=self.outputfolder+"/plaintext"
+            out = open(filename, "wb")
+            out.write(self.datas["plaintext"])
+            out.close()
+            print(colored("FLAG FOUND IN {} !".format(filename),"green"))
+            logger.info("FLAG FOUND IN {} !".format(filename))
+
+        print("a")
         self.halfn()
-        #print("b")
+        print("b")
         self.canCreatePub()
-        #print("c")
+        print("c")
         self.canCreatePriv()
-        #print("d")
+        print("d")
         if self.privCreated and len(self.datas["chex"])>0:
+            print("e")
             self.decrypt()
+            print("f")
         elif (self.datas["c"] and self.datas["d"] and self.datas["n"]):
             if not self.solvedC:
                 self.printflag()
@@ -344,10 +347,11 @@ class Rsolver:
         import rsolver
         path = os.path.dirname(rsolver.__file__)
         print(path+"/scripts/*")
-        scripts= (glob.glob(path + '/scripts/[!_]*'))
+        scripts = (glob.glob(path + '/scripts/[!_]*'))
         self.iscracked()
         for script in scripts:
             try:
+                print(script)
                 spec = importlib.util.spec_from_file_location("module.name", script)
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
@@ -466,23 +470,22 @@ class PrivateKey(object):
            :param e: exponent
            :param n: n from public key
         """
-        t = (p-1)*(q-1)
+        if (p == q):
+            t = (p-1)*(q)
+        else:
+            t = (p-1)*(q-1)
         d = modinv(e,t)
         self.key = RSA.construct((n, e, d, p, q))
-
     def decrypt(self, cipher):
         """Uncipher data with private key
            :param cipher: input cipher
            :type cipher: string
         """
         return self.key.decrypt(cipher)
-
-
     def decryptOAEP(self,cipher):
         rsakey = PKCS1_OAEP.new(self.key)
         decrypted = rsakey.decrypt(cipher)
         return decrypted
-
     def __str__(self):
         # Print armored private key
         return self.key.exportKey().decode("utf8")

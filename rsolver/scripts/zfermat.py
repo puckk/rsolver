@@ -1,5 +1,6 @@
 import gmpy
 
+
 def check(solver):
     if (len(solver.datas["n"])>0):
         return True
@@ -16,8 +17,8 @@ def crack(solver):
                     break
             a += 1
         if a < max:
-            solver.addq(a-b)
-            solver.addp(a+b)
+            solver.addq(int(a-b))
+            solver.addp(int(a+b))
             return True
         else:
             return False

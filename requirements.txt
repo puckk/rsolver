@@ -5,3 +5,4 @@ gmpy2
 requests
 termcolor
 owiener
+factordb-pycli
