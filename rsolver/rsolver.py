@@ -4,6 +4,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from base64 import b64decode
 from .rsabuilder import *
+import rsolver
 import importlib.util
 import os
 import glob
@@ -38,6 +39,7 @@ class Rsolver:
     def __init__(self, timeout):
         self.decrypted = False
         self.pubCreated = False
+        self.privCreatedWithPQ = False
         self.privCreated = False
         self.plain_setted = False
         self.solvedC = False
@@ -235,8 +237,8 @@ class Rsolver:
                 logger.info('Public Key created in {}'.format(filename))
                 self.pubCreated=True
 
-    def canCreatePriv(self):
-        if not self.privCreated:
+    def canCreatePrivWithPQ(self):
+        if not self.privCreatedWithPQ:
             if (len(self.datas["n"])>0 and len(self.datas["p"])>0 and len(self.datas["q"])>0 and len(self.datas["e"])>0):
                 self.addpriv(self.datas["p"][-1], self.datas["q"][-1],
                              self.datas["e"][-1], self.datas["n"][-1])
@@ -247,31 +249,50 @@ class Rsolver:
                 print(colored("PEM Private key create in {} !".format(filename),"green"))
                 logger.info("PEM Private key create in {} !".format(filename))
 
+
+    def canCreatePriv(self):
+        print("...")
+        if not self.privCreated:
+            print("debug")
+            print(self.datas["priv"])
+            if (len(self.datas["priv"]) > 0):
+                for i in range(len(self.datas["priv"])):
+                    filename = self.outputfolder+"/privateKey{}.pem".format(str(i))
+                    out = open(filename, "w")
+                    out.write(str(self.datas["priv"][i]))
+                    out.close()
+                    print(colored("PEM Private key create in {} !"
+                                  .format(filename), "green"))
+                    logger.info("PEM Private key create in {} !"
+                                .format(filename))
+                    self.privCreated = True
+
     def decrypt(self):
         if not self.decrypted:
-            g = self.datas["priv"][-1].decrypt(self.datas["chex"][-1])
-            filename=self.outputfolder+"/plaintext"
-            out=open(filename,"wb")
-            out.write(g)
-            out.close()
-            print(colored("FLAG FOUND IN {} !".format(filename),"green"))
-            logger.info("FLAG FOUND IN {} !".format(filename))
-            try:
-                g=self.datas["priv"][-1].decryptOAEP(self.datas["chex"][-1])
-                filename=self.outputfolder+"/plaintext_oaep"
-                out=open(filename,"wb")
+            for i in range(len(self.datas["priv"])):
+                g = self.datas["priv"][i].decrypt(self.datas["chex"][-1])
+                filename = self.outputfolder+"/plaintext{}".format(str(i))
+                out = open(filename, "wb")
                 out.write(g)
                 out.close()
-                self.decrypted=True
-                print(colored("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename),"green"))
-                logger.info("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename))
-            except:
-                None
+                print(colored("FLAG FOUND IN {} !".format(filename), "green"))
+                logger.info("FLAG FOUND IN {} !".format(filename))
+                try:
+                    g=self.datas["priv"][i].decryptOAEP(self.datas["chex"][-1])
+                    filename=self.outputfolder+"/plaintext_oaep"
+                    out=open(filename,"wb")
+                    out.write(g)
+                    out.close()
+                    self.decrypted=True
+                    print(colored("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename),"green"))
+                    logger.info("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename))
+                except:
+                    None
 
             self.decrypted=True
             if (self.stopInFirstFound):
                 exit()
-            # exit()
+                # exit()
 
 
 
@@ -303,8 +324,10 @@ class Rsolver:
         self.canCreatePub()
         print("c")
         self.canCreatePriv()
+        print("c2")
+        self.canCreatePrivWithPQ()
         print("d")
-        if self.privCreated and len(self.datas["chex"])>0:
+        if self.privCreatedWithPQ and len(self.datas["chex"])>0:
             print("e")
             self.decrypt()
             print("f")
@@ -320,33 +343,24 @@ class Rsolver:
                 if not self.solvedF:
                     self.flagchinese()
 
-
-
             elif (len(self.datas["n"])>0 and len(self.datas["d"])>0 and len(self.datas["e"])>0 and len(self.datas["p"])==0):
                p,q=self.factor_modulus(self.datas["n"][-1], self.datas["d"][-1], self.datas["e"][-1])
                self.addp(p)
                self.addq(q)
 
-
-
     def finish(self):
         self.writeFindings()
         if not self.solvedC:
-            print(colored("Note: If the script doesnt work, try with --timeout 0 or read the logs in {}".format(self.outputfolder+"/output.log"), 'blue'))
+            print(colored("Note: If the script doesnt work, try with --timeout\
+                0 or read the logs in {}".format(self.outputfolder +
+                                                 "/output.log"), 'blue'))
         exit()
 
-
-
-
-
-
-    def handler(self,signum, frame):
-       #print ("Timeout")
-       raise TimeOutException("Timeoutddd")
+    def handler(self, signum, frame):
+        raise TimeOutException("Timeoutddd")
 
     def crack(self):
         self.writeQuery()
-        import rsolver
         path = os.path.dirname(rsolver.__file__)
         print(path+"/scripts/*")
         scripts = (glob.glob(path + '/scripts/[!_]*'))
@@ -354,23 +368,25 @@ class Rsolver:
         for script in scripts:
             try:
                 print(script)
-                spec = importlib.util.spec_from_file_location("module.name", script)
+                spec = importlib.util.spec_from_file_location("module.name",
+                                                              script)
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
-                #print (script,sc.check(self.datas))
-                logger.debug ("Checking condition for script {}".format(script))
+                logger.debug("Checking condition for script {}".format(script))
                 if sc.check(self):
-                    logger.info("TRYING script:"+ script)
+                    logger.info("TRYING script:" + script)
                     signal.signal(signal.SIGALRM, self.handler)
                     signal.alarm(self.timeout)
                     sc.crack(self)
                     signal.alarm(0)
                 else:
-                    logger.debug ("script {} does not meet the conditions".format(script))
+                    logger.debug("script {} does not meet the conditions"
+                                 .format(script))
             except TimeOutException:
-                logger.error ("Timeout for script:" + script)
+                logger.error("Timeout for script:" + script)
             except Exception as e:
-                logging.error("script {} get the exception: \n{}".format(script,str(e)), exc_info=True)
+                logging.error("script {} get the exception: \n{}"
+                              .format(script, str(e)), exc_info=True)
             self.iscracked()
 
 #            print (self.datas)
@@ -378,12 +394,12 @@ class Rsolver:
         self.finish()
 
     def writeQuery(self):
-        logger.info("The variables received from inputs are:\n\n"+pprint.pformat(self.datas) +"\n\n")
-
-
+        logger.info("The variables received from inputs are:\n\n" +
+                    pprint.pformat(self.datas) + "\n\n")
 
     def writeFindings(self):
-        logger.info("After execution the variables are:\n\n"+pprint.pformat(self.datas) +"\n\n\n")
+        logger.info("After execution the variables are:\n\n" +
+                    pprint.pformat(self.datas) + "\n\n\n")
 
 
 #        print (pprint.pprint(self.datas))
@@ -411,11 +427,11 @@ class Rsolver:
     def addc(self, c):
         logger.info("c FOUND {}".format(c))
         self.datas["c"].append(c)
-        d=hex(c)[2:]
-        if len(d)%2==0:
-            d=binascii.unhexlify(d)
+        d = hex(c)[2:]
+        if len(d) % 2 == 0:
+            d = binascii.unhexlify(d)
         else:
-            d=binascii.unhexlify("0"+d)
+            d = binascii.unhexlify("0"+d)
         self.addchex(d)
 
     def addchex(self, chex):
@@ -441,9 +457,10 @@ class Rsolver:
     def addpem(self, pem):
         self.datas["pem"].append(pem)
 
-    def addpriv(self, p,q,e,n):
-        self.privCreated=True
-        self.datas["priv"].append(PrivateKey(p,q,e,n))
+    def addpriv(self, p, q, e, n):
+        self.privCreatedWithPQ = True
+        self.datas["priv"].append(PrivateKey(p, q, e, n))
+        print (self.datas["priv"])
 
     def addc64(self, c64):
         self.datas["c64"].append(c64)
@@ -452,16 +469,13 @@ class Rsolver:
         self.datas["ucp"] = ucp
 
     def blindTrue(self):
-        self.datas["blind"]=True
+        self.datas["blind"] = True
 
     def setucp(self, ucp):
         self.datas["ucp"] = int(ucp)
 
-
     def start(self):
         pass
-#        print (self.datas)
-
 
 
 class PrivateKey(object):
@@ -476,18 +490,21 @@ class PrivateKey(object):
             t = (p-1)*(q)
         else:
             t = (p-1)*(q-1)
-        d = modinv(e,t)
+        d = modinv(e, t)
         self.key = RSA.construct((n, e, d, p, q))
+
     def decrypt(self, cipher):
         """Uncipher data with private key
            :param cipher: input cipher
            :type cipher: string
         """
         return self.key.decrypt(cipher)
-    def decryptOAEP(self,cipher):
+
+    def decryptOAEP(self, cipher):
         rsakey = PKCS1_OAEP.new(self.key)
         decrypted = rsakey.decrypt(cipher)
         return decrypted
+
     def __str__(self):
         # Print armored private key
         return self.key.exportKey().decode("utf8")

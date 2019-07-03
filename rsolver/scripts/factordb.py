@@ -2,6 +2,7 @@ from factordb.factordb import FactorDB
 
 
 def check(solver):
+	return False
 	if (len(solver.datas["n"]) > 0 and len(solver.datas["e"]) == 1):
 			return True
 
