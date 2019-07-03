@@ -14,9 +14,7 @@ def crack(solver):
     e = solver.datas["e"][0]
     g = gcd(n1, n2)
     if g == 1:
-        print("Fail")
     elif (n1/g) == int(n1/g):
-        print("Ok")
         p = g
         q1 = n1/p
         q2 = n2/p
