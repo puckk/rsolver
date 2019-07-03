@@ -3,7 +3,7 @@ from Crypto.PublicKey import RSA
 import glob
 import binascii
 import subprocess
-import base64
+from base64 import b64decode
 
 
 def firstprivkey(key64):
