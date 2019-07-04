@@ -142,7 +142,7 @@ def parse(args,solv):
     if (args["c64"]):
         a=args["c64"]
         solv.addc64(a)
-        a=(base64.b64decode(a))
+        a=(b64decode(a))
         b=""
         for i in a:
             b=b+ (hex(int(i))[2:].zfill(2))
@@ -154,7 +154,7 @@ def parse(args,solv):
         for f in args["c64file"]:
             a= f.read().replace("\n","").strip()
             solv.addc64(a)
-            a=(base64.b64decode(a))
+            a=(b64decode(a))
             b=""
             for i in a:
                 b=b+ (hex(int(i))[2:].zfill(2))
