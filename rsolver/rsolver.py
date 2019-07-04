@@ -36,7 +36,8 @@ class Rsolver:
 
     outputfolder = ""
 
-    def __init__(self, timeout):
+    def __init__(self, timeout, scripts=None):
+        self.scripts = scripts
         self.decrypted = False
         self.pubCreated = False
         self.privCreatedWithPQ = False
@@ -251,10 +252,10 @@ class Rsolver:
 
 
     def canCreatePriv(self):
-        print("...")
+        # print("...")
         if not self.privCreated:
-            print("debug")
-            print(self.datas["priv"])
+            # print("debug")
+            # print(self.datas["priv"])
             if (len(self.datas["priv"]) > 0):
                 for i in range(len(self.datas["priv"])):
                     filename = self.outputfolder+"/privateKey{}.pem".format(str(i))
@@ -318,19 +319,19 @@ class Rsolver:
             print(colored("FLAG FOUND IN {} !".format(filename),"green"))
             logger.info("FLAG FOUND IN {} !".format(filename))
 
-        print("a")
+        # print("a")
         self.halfn()
-        print("b")
+        # print("b")
         self.canCreatePub()
-        print("c")
+        # print("c")
         self.canCreatePriv()
-        print("c2")
+        # print("c2")
         self.canCreatePrivWithPQ()
-        print("d")
+        # print("d")
         if self.privCreatedWithPQ and len(self.datas["chex"])>0:
-            print("e")
+            # print("e")
             self.decrypt()
-            print("f")
+            # print("f")
         elif (self.datas["c"] and self.datas["d"] and self.datas["n"]):
             if not self.solvedC:
                 self.printflag()
@@ -362,17 +363,24 @@ class Rsolver:
     def crack(self):
         self.writeQuery()
         path = os.path.dirname(rsolver.__file__)
-        print(path+"/scripts/*")
-        scripts = (glob.glob(path + '/scripts/[!_]*'))
+        if self.scripts is None:
+            scripts = sorted(glob.glob(path + '/scripts/[!_]*'), key=os.path.basename)
+        else:
+            scripts = []
+            for sc in self.scripts:
+                # print(sc)
+                scripts.append(glob.glob(path + '/scripts/{}.py'.format(sc))[0])
+        # print(scripts)
         self.iscracked()
         for script in scripts:
             try:
-                print(script)
-                spec = importlib.util.spec_from_file_location("module.name",
-                                                              script)
+                # print(script)
+                spec = importlib.util.spec_from_file_location(
+                        "module.name", script)
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
-                logger.debug("Checking condition for script {}".format(script))
+                logger.debug("Checking condition for script {}"
+                             .format(script))
                 if sc.check(self):
                     logger.info("TRYING script:" + script)
                     signal.signal(signal.SIGALRM, self.handler)
@@ -460,7 +468,7 @@ class Rsolver:
     def addpriv(self, p, q, e, n):
         self.privCreatedWithPQ = True
         self.datas["priv"].append(PrivateKey(p, q, e, n))
-        print (self.datas["priv"])
+        # print (self.datas["priv"])
 
     def addc64(self, c64):
         self.datas["c64"].append(c64)

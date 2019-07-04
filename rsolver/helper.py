@@ -1,5 +1,10 @@
 from argparse import ArgumentParser,FileType
 import os
+import glob
+import rsolver
+
+path = os.path.dirname(rsolver.__file__)
+scripts_choices = [os.path.basename(x).split(".py")[0] for x in glob.glob(path + '/scripts/[!_]*')]
 
 
 #Var auxs
@@ -14,7 +19,7 @@ filesinputs = parser.add_argument_group('FILE INPUTS')
 private = parser.add_argument_group('INPUT PRIVATE PARTIAL KEYS')
 ciphertexts=parser.add_argument_group('CIPHERTEXT INPUTS')
 
-debuggroup = parser.add_argument_group('Debug')
+debuggroup = parser.add_argument_group('General')
 
 inputarguments = argumentsinputs.add_argument_group('ff')
 
@@ -51,6 +56,7 @@ ciphertexts.add_argument("-c64", dest="c64",  help="Input c in base64")
 #Debug
 debuggroup.add_argument("--debug", dest="debug", help="Debug mode")
 debuggroup.add_argument("--timeout", dest="timeout", help="Timeout for each script, default 120segs")
+debuggroup.add_argument("--scripts", dest="scripts", help="Optional: Launch only custom scripts", default=None, nargs='+', choices=scripts_choices)
 
 
 args = parser.parse_args()
