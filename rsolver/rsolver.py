@@ -44,6 +44,7 @@ class Rsolver:
         self.privCreated = False
         self.plain_setted = False
         self.solvedC = False
+        self.privcounter = 0
         self.solvedF = False
         self.stopInFirstFound = True
         if timeout:
@@ -243,30 +244,8 @@ class Rsolver:
             if (len(self.datas["n"])>0 and len(self.datas["p"])>0 and len(self.datas["q"])>0 and len(self.datas["e"])>0):
                 self.addpriv(self.datas["p"][-1], self.datas["q"][-1],
                              self.datas["e"][-1], self.datas["n"][-1])
-                filename=self.outputfolder+"/privateKey.pem"
-                out=open(filename,"w")
-                out.write(str(self.datas["priv"][-1]))
-                out.close()
-                print(colored("PEM Private key create in {} !".format(filename),"green"))
-                logger.info("PEM Private key create in {} !".format(filename))
 
 
-    def canCreatePriv(self):
-        # print("...")
-        if not self.privCreated:
-            # print("debug")
-            # print(self.datas["priv"])
-            if (len(self.datas["priv"]) > 0):
-                for i in range(len(self.datas["priv"])):
-                    filename = self.outputfolder+"/privateKey{}.pem".format(str(i))
-                    out = open(filename, "w")
-                    out.write(str(self.datas["priv"][i]))
-                    out.close()
-                    print(colored("PEM Private key create in {} !"
-                                  .format(filename), "green"))
-                    logger.info("PEM Private key create in {} !"
-                                .format(filename))
-                    self.privCreated = True
 
     def decrypt(self):
         if not self.decrypted:
@@ -280,13 +259,13 @@ class Rsolver:
                 logger.info("FLAG FOUND IN {} !".format(filename))
                 try:
                     g=self.datas["priv"][i].decryptOAEP(self.datas["chex"][-1])
-                    filename=self.outputfolder+"/plaintext_oaep"
+                    filename=self.outputfolder+"/PLAINTEXT_OAEP"
                     out=open(filename,"wb")
                     out.write(g)
                     out.close()
                     self.decrypted=True
-                    print(colored("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename),"green"))
-                    logger.info("Experimental FLAG FOUND (maybe false positive) IN {} !".format(filename))
+                    print(colored("Experimental FLAG FOUND WITH OAEP (maybe false positive) IN {} !".format(filename),"green"))
+                    logger.info("Experimental FLAG FOUND WITH OAEP (maybe false positive) IN {} !".format(filename))
                 except:
                     None
 
@@ -324,8 +303,6 @@ class Rsolver:
         # print("b")
         self.canCreatePub()
         # print("c")
-        self.canCreatePriv()
-        # print("c2")
         self.canCreatePrivWithPQ()
         # print("d")
         if self.privCreatedWithPQ and len(self.datas["chex"])>0:
@@ -395,6 +372,7 @@ class Rsolver:
             except Exception as e:
                 logging.error("script {} get the exception: \n{}"
                               .format(script, str(e)), exc_info=True)
+            print("WOT")
             self.iscracked()
 
 #            print (self.datas)
@@ -465,10 +443,28 @@ class Rsolver:
     def addpem(self, pem):
         self.datas["pem"].append(pem)
 
+    def addpriv_d(self, n, e, d):
+        k = PrivateKey(n, e, d=d)
+        self.datas["priv"].append(k)
+        filename = self.outputfolder+"/privateKey-{}.pem".format(str(self.privcounter))
+        self.privcounter += 1
+        out = open(filename, "w")
+        out.write(str(self.datas["priv"][-1]))
+        out.close()
+        print(colored("PEM Private key create in {} !".format(filename),"green"))
+        logger.info("PEM Private key create in {} !".format(filename))
+
+
     def addpriv(self, p, q, e, n):
         self.privCreatedWithPQ = True
-        self.datas["priv"].append(PrivateKey(p, q, e, n))
-        # print (self.datas["priv"])
+        self.datas["priv"].append(PrivateKey(n,e, p=p, q=q))
+        filename = self.outputfolder+"/privateKey.{}.pem".format(str(self.privcounter))
+        self.privcounter += 1
+        out = open(filename,"w")
+        out.write(str(self.datas["priv"][-1]))
+        out.close()
+        print(colored("PEM Private key create in {} !".format(filename),"green"))
+        logger.info("PEM Private key create in {} !".format(filename))
 
     def addc64(self, c64):
         self.datas["c64"].append(c64)
@@ -487,19 +483,19 @@ class Rsolver:
 
 
 class PrivateKey(object):
-    def __init__(self, p, q, e, n):
-        """Create private key from base components
-           :param p: extracted from n
-           :param q: extracted from n
-           :param e: exponent
-           :param n: n from public key
-        """
-        if (p == q):
-            t = (p-1)*(q)
+    def __init__(self, n, e, d=None, p=None, q=None):
+        if d:
+            self.key = RSA.construct((n, e, d))
+        elif p and q:
+            if (p == q):
+                t = (p-1)*(q)
+            else:
+                t = (p-1)*(q-1)
+            d = modinv(e, t)
+            self.key = RSA.construct((n, e, d, p, q))
         else:
-            t = (p-1)*(q-1)
-        d = modinv(e, t)
-        self.key = RSA.construct((n, e, d, p, q))
+            exit()
+
 
     def decrypt(self, cipher):
         """Uncipher data with private key

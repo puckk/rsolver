@@ -6,7 +6,7 @@ import binascii
 
 def check(solver):
     if (len(solver.datas["n"])>0):
-        if ((len(str(solver.datas["n"][-1]))) < 350):
+        if ((len(str(solver.datas["n"][-1]))) < 400):
             return True
 def crack(solver):
     a='./yafu "factor({})"'.format(str(solver.datas["n"][-1]))
