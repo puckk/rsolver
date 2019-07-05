@@ -457,7 +457,7 @@ class Rsolver:
 
     def addpriv(self, p, q, e, n):
         self.privCreatedWithPQ = True
-        self.datas["priv"].append(PrivateKey(n,e, p=p, q=q))
+        self.datas["priv"].append(PrivateKey(n, e, p=p, q=q))
         filename = self.outputfolder+"/privateKey.{}.pem".format(str(self.privcounter))
         self.privcounter += 1
         out = open(filename,"w")
@@ -487,10 +487,12 @@ class PrivateKey(object):
         if d:
             self.key = RSA.construct((n, e, d))
         elif p and q:
+
             if (p == q):
                 t = (p-1)*(q)
             else:
                 t = (p-1)*(q-1)
+
             d = modinv(e, t)
             self.key = RSA.construct((n, e, d, p, q))
         else:

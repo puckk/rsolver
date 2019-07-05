@@ -1,15 +1,17 @@
 #multiprime extract factors with yafu and not e setted
-
+import rsolver
 import subprocess
 import gmpy2
 import binascii
+import os
 
 def check(solver):
     if (len(solver.datas["n"])>0):
         if ((len(str(solver.datas["n"][-1]))) < 400):
             return True
 def crack(solver):
-    a='./yafu "factor({})"'.format(str(solver.datas["n"][-1]))
+    path = os.path.dirname(rsolver.__file__)
+    a=path + '/scripts/yafu "factor({})"'.format(str(solver.datas["n"][-1]))
     #print (a)
     b= (subprocess.check_output(a,shell=True).decode("utf8"))
     b= (b[b.index("***factors found***"):])
