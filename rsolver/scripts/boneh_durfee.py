@@ -13,10 +13,7 @@ def crack(solver):
     process = subprocess.Popen(python3_command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     output = output.decode()
-    print("a", output)
     if "DFOUND:" in (output):
         d = int(output[output.index("DFOUND:")+8:output.index("#")-1])
         solver.addd(d)
         solver.addpriv_d(n, e, d)
-    else:
-        print("FAIL")

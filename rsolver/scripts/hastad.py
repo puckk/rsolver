@@ -44,13 +44,11 @@ def check(solver):
             return True
 
 def crack(solver):
-    print ("A")
     N = solver.datas["n"]
     C = solver.datas["c"]
 
     e = len(N)
     a = chinese_remainder(N, C)
-    print ("B")
     #solver.datas["d"].append(a)
     solver.adde(e)
 

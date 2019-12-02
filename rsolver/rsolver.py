@@ -298,7 +298,6 @@ class Rsolver:
             print(colored("FLAG FOUND IN {} !".format(filename),"green"))
             logger.info("FLAG FOUND IN {} !".format(filename))
 
-        # print("a")
         self.halfn()
         # print("b")
         self.canCreatePub()
@@ -372,7 +371,6 @@ class Rsolver:
             except Exception as e:
                 logging.error("script {} get the exception: \n{}"
                               .format(script, str(e)), exc_info=True)
-            print("WOT")
             self.iscracked()
 
 #            print (self.datas)
