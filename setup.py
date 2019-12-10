@@ -1,6 +1,6 @@
 import setuptools
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+#with open("README.md", "r") as fh:
+#    long_description = fh.read()
 
 DEPENDENCIES = open('requirements.txt', 'r').read().split('\n')
 
@@ -12,8 +12,8 @@ setuptools.setup(
     author="Jeremías Pretto - Facundo Basso",
     author_email="jpretto@cert.unlp.edu.ar",
     description="CTF Solver",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
+#    long_description_content_type="text/markdown",
+#    long_description=long_description,
     url="https://github.com/puckk",
     packages=['rsolver'],
     package_data={"": ["rsolver/scripts/*.py"]},

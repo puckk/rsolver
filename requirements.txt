@@ -3,7 +3,7 @@ pycrypto
 gmpy
 gmpy2
 requests
-termcolor
+colored
 owiener
 factordb-pycli
 lazy_import
