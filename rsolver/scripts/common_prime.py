@@ -14,11 +14,13 @@ def crack(solver):
     n2 = solver.datas["n"][1]
     e = solver.datas["e"][0]
     g = gcd(n1, n2)
-    print("!!!!!LPM",g)
+
     if g == 1:
         pass
     elif (n1/g) == int(n1/g):
+        
         if gmpy2.is_prime(int(g)):
+            print("here",g)
             p = g
             q1 = n1/p
             q2 = n2/p

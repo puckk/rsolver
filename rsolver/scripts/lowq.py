@@ -20,5 +20,6 @@ def crack (solver):
             q=n//prime
             solver.addq(q)
             solver.addp(p)
+            return True
 
     #Ahora se queda con el último, podría quedarse con todos y bruteforcear las keys y desencripts

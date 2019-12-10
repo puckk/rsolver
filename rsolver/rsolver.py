@@ -256,7 +256,7 @@ class Rsolver:
                 out = open(filename, "wb")
                 out.write(g)
                 out.close()
-                print(colored("FLAG FOUND IN {} !".format(filename), "green"))
+                print(colored("FLAG FOUND IN {} !".format(filename), "green", attrs=["reverse","blink"]))
                 logger.info("FLAG FOUND IN {} !".format(filename))
                 try:
                     g=self.datas["priv"][i].decryptOAEP(self.datas["chex"][-1])
@@ -296,7 +296,7 @@ class Rsolver:
             out = open(filename, "wb")
             out.write(self.datas["plaintext"])
             out.close()
-            print(colored("FLAG FOUND IN {} !".format(filename),"green"))
+            print(colored("FLAG FOUND IN {} !".format(filename),"green", attrs=["blink","reverse"]))
             logger.info("FLAG FOUND IN {} !".format(filename))
 
         self.halfn()
