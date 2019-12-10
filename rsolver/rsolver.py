@@ -18,6 +18,7 @@ import fractions
 import pprint
 import traceback
 import logging
+from colored import fg
 
 logger = logging.getLogger('Rsolver')
 
@@ -86,7 +87,7 @@ class Rsolver:
         if len(plaintext) % 2 == 1:
             plaintext = "0"+plaintext
         plaintext = binascii.unhexlify(plaintext)
-        print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
+        print(colored('===FLAG FOUND IN {}==='.format(filename), 'green', attrs=['reverse', 'blink']))
         logger.info("FLAG FOUND from c,d and n:\n{}".format(plaintext))
         logger.info("FLAG save in {}".format(filename))
         self.solvedC = True
@@ -114,7 +115,7 @@ class Rsolver:
         if len(text) % 2 == 1:
             text = "0"+text
         filename = self.outputfolder+"/PLAINTEXTE"
-        print(colored('===FLAG FOUND IN {}==='.format(filename), 'green'))
+        print(colored('===FLAG FOUND IN {}==='.format(filename), 'green', attrs=['reverse', 'blink']))
         out = open(filename, "wb")
         text = binascii.unhexlify(text)
         logger.info("FLAG FOUND SAVE IN FILE:\n{}".format(filename))
@@ -137,7 +138,7 @@ class Rsolver:
                 out = open(filename, "wb")
                 logger.info("FLAG FOUND save in :\n{}".format(filename))
                 print(colored('===FLAG FOUND IN {}==='.format(filename),
-                      'green'), colored("(Somethimes this decrypt file, if do, \
+                      'green', attrs=['reverse', 'blink']), colored("(Somethimes this decrypt file, if do, \
                       try with base64 crypt file)", "blue"))
                 aux = aux+1
                 plaintext = hex((pow(self.datas["c"][-1],
@@ -347,23 +348,32 @@ class Rsolver:
                 # print(sc)
                 scripts.append(glob.glob(path + '/scripts/{}.py'.format(sc))[0])
         # print(scripts)
+        #printtable
+        print("Checking if can crack")
         self.iscracked()
+
         for script in scripts:
+
             try:
                 # print(script)
                 spec = importlib.util.spec_from_file_location(
                         "module.name", script)
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
+
+                print("\t" + colored("Testing script {}".format(script.split("/")[-1]),"yellow"))
                 logger.debug("Checking condition for script {}"
                              .format(script))
                 if sc.check(self):
+                    print("\t\t" + colored("Script {} meets condition, trying to crack".format(script.split("/")[-1]), "green"))
                     logger.info("TRYING script:" + script)
                     signal.signal(signal.SIGALRM, self.handler)
                     signal.alarm(self.timeout)
                     sc.crack(self)
                     signal.alarm(0)
                 else:
+                    print("\t\t" + colored("Script {} does not meets condition, skiping".format(script.split("/")[-1]),
+                                           "red"))
                     logger.debug("script {} does not meet the conditions"
                                  .format(script))
             except TimeOutException:

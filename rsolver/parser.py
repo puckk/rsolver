@@ -96,7 +96,7 @@ def parseFile(args,solv):
     file= args["file"].read()
     for line in file.split("\n"):
         line=line.strip()
-        print (line)
+#        print (line)
         if line!="":
                 sp=line.split("=")
                 key=sp[0].strip()

@@ -6,3 +6,5 @@ requests
 termcolor
 owiener
 factordb-pycli
+texttable
+
