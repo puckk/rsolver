@@ -6,5 +6,5 @@ requests
 termcolor
 owiener
 factordb-pycli
-texttable
+lazy_import
 
