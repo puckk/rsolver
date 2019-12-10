@@ -361,22 +361,23 @@ class Rsolver:
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
 
-                print("\t" + colored("Testing script {}".format(script.split("/")[-1]),"yellow"))
+                print("\t" + colored("Testing script {}: ".format(script.split("/")[-1]),"yellow"), end="")
                 logger.debug("Checking condition for script {}"
                              .format(script))
                 if sc.check(self):
-                    print("\t\t" + colored("Script {} meets condition, trying to crack".format(script.split("/")[-1]), "green"))
+                    print(colored("meets condition, trying to crack".format(script.split("/")[-1]), "green"))
                     logger.info("TRYING script:" + script)
                     signal.signal(signal.SIGALRM, self.handler)
                     signal.alarm(self.timeout)
                     sc.crack(self)
                     signal.alarm(0)
                 else:
-                    print("\t\t" + colored("Script {} does not meets condition, skiping".format(script.split("/")[-1]),
+                    print(colored("does not meets condition, skiping".format(script.split("/")[-1]),
                                            "red"))
                     logger.debug("script {} does not meet the conditions"
                                  .format(script))
             except TimeOutException:
+                print("\t\t" + colored("Timeout!", "blue"))
                 logger.error("Timeout for script:" + script)
             except Exception as e:
                 logging.error("script {} get the exception: \n{}"

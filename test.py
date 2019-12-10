@@ -33,11 +33,6 @@ class TestRsolver(unittest.TestCase):
                "path": "$(ls | grep output_ | tail -n 1)/plaintext_cdn", "solution": "-",
                "md5": "7dbd48237be8291ce05ddb45c45cf02a"},
 
-
-
-
-
-
     }
 
     def test_upper(self):
