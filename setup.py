@@ -7,7 +7,7 @@ DEPENDENCIES = open('requirements.txt', 'r').read().split('\n')
 setuptools.setup(
     include_package_data=True,
     name='rsolver',
-    version='0.0.8',
+    version='0.1.0',
     scripts=['rsolver/gui/rsolver'],
     author="Jeremías Pretto - Facundo Basso",
     author_email="jpretto@cert.unlp.edu.ar",
