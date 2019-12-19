@@ -69,7 +69,7 @@ class Rsolver:
                             level=logging.DEBUG, format=log_format)
         logger.info('Iniciando Rsolver en carpeta {}'
                     .format(self.outputfolder))
-        print(colored("OUTPUT FOLDER: " + self.outputfolder, "red"))
+        print(colored("CARPETA DE SALIDA: " + self.outputfolder, "red"))
 
     def printflag(self):
         C = self.datas["c"][-1]
@@ -236,8 +236,8 @@ class Rsolver:
                 plaintext = RSA.construct((self.datas["n"][-1], self.datas["e"][-1])).publickey().exportKey().decode("utf8")
                 out.write(plaintext)
                 out.close()
-                print(colored('Public Key created in {}'.format(filename), 'blue'))
-                logger.info('Public Key created in {}'.format(filename))
+                print(colored('Clave Pública en formato PEM generada en {}'.format(filename), 'blue'))
+                logger.info('Clave Pública en formato PEM generada en {}'.format(filename))
                 self.pubCreated=True
 
     def canCreatePrivWithPQ(self):
@@ -254,8 +254,16 @@ class Rsolver:
                 g = self.datas["priv"][i].decrypt(self.datas["chex"][-1])
                 filename = self.outputfolder+"/plaintext{}".format(str(i))
                 out = open(filename, "wb")
+                import re
                 out.write(g)
+                print("\n\n\n==========================================")
+                print("Ataque exitoso: Factorización vía Factordb")
+                print("==========================================")
+                print("Fue posible recuperar la clave privada d porque se encontraron los factores primos del módulo público N en la web factordb.com")
+                print("==========================================")
                 out.close()
+                filename = self.outputfolder+"/plaintext"
+
                 print(colored("FLAG FOUND IN {} !".format(filename), "green", attrs=["reverse","blink"]))
                 logger.info("FLAG FOUND IN {} !".format(filename))
                 try:
@@ -294,7 +302,10 @@ class Rsolver:
             self.plain_setted = True
             filename=self.outputfolder+"/plaintext"
             out = open(filename, "wb")
-            out.write(self.datas["plaintext"])
+            import re
+            plano = re.findall("[a-zA-Z0-9]+", self.datas["plaintext"])
+            out.write(plano)
+            print("ssss")
             out.close()
             print(colored("FLAG FOUND IN {} !".format(filename),"green", attrs=["blink","reverse"]))
             logger.info("FLAG FOUND IN {} !".format(filename))
@@ -349,7 +360,7 @@ class Rsolver:
                 scripts.append(glob.glob(path + '/scripts/{}.py'.format(sc))[0])
         # print(scripts)
         #printtable
-        print("Checking if can crack")
+        print("Comienzo de pruebas:")
         self.iscracked()
 
         for script in scripts:
@@ -361,20 +372,20 @@ class Rsolver:
                 sc = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(sc)
 
-                print("\t" + colored("Testing script {}: ".format(script.split("/")[-1]),"yellow"), end="")
-                logger.debug("Checking condition for script {}"
+                print("\t" + colored("Probando ataque {}: ".format(script.split("/")[-1]),"yellow"), end="")
+                logger.debug("Comprobando condiciones del script {}"
                              .format(script))
                 if sc.check(self):
-                    print(colored("meets condition, trying to crack".format(script.split("/")[-1]), "green"))
-                    logger.info("TRYING script:" + script)
+                    print(colored("cumple condición, intentanto crackear".format(script.split("/")[-1]), "green"))
+                    logger.info("Probando script:" + script)
                     signal.signal(signal.SIGALRM, self.handler)
                     signal.alarm(self.timeout)
                     sc.crack(self)
                     signal.alarm(0)
                 else:
-                    print(colored("does not meets condition, skiping".format(script.split("/")[-1]),
+                    print(colored("no cumple condición, saltando".format(script.split("/")[-1]),
                                            "red"))
-                    logger.debug("script {} does not meet the conditions"
+                    logger.debug("script {} no cumple condición"
                                  .format(script))
             except TimeOutException:
                 print("\t\t" + colored("Timeout!", "blue"))
@@ -460,8 +471,8 @@ class Rsolver:
         out = open(filename, "w")
         out.write(str(self.datas["priv"][-1]))
         out.close()
-        print(colored("PEM Private key create in {} !".format(filename),"green"))
-        logger.info("PEM Private key create in {} !".format(filename))
+        print(colored("Clave Privada PEM generada! Guardada en {}".format(filename),"green"))
+        logger.info("Clave Privada PEM generada! Guardada en {} !".format(filename))
 
 
     def addpriv(self, p, q, e, n):
@@ -472,8 +483,8 @@ class Rsolver:
         out = open(filename,"w")
         out.write(str(self.datas["priv"][-1]))
         out.close()
-        print(colored("PEM Private key create in {} !".format(filename),"green"))
-        logger.info("PEM Private key create in {} !".format(filename))
+        print(colored("Clave Privada PEM generada! Guardada en {} !".format(filename),"green"))
+        logger.info("Clave Privada PEM generada! Guardada en {} !".format(filename))
 
     def addc64(self, c64):
         self.datas["c64"].append(c64)
